@@ -22,6 +22,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JTextField;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.StyledDocument;
@@ -59,8 +60,8 @@ public class RouterChatGUI extends javax.swing.JFrame {
         btnNewChat = new javax.swing.JButton();
         btnDelChat = new javax.swing.JButton();
         lblError = new javax.swing.JLabel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        lblRouterName = new javax.swing.JLabel();
+        lblIP = new javax.swing.JLabel();
         jScrollPane4 = new javax.swing.JScrollPane();
         txtMessages = new javax.swing.JEditorPane();
 
@@ -124,9 +125,9 @@ public class RouterChatGUI extends javax.swing.JFrame {
         lblError.setText("error");
         lblError.setAlignmentY(0.1F);
 
-        jLabel1.setText("Router:");
+        lblRouterName.setText("Router:");
 
-        jLabel2.setText("IP:");
+        lblIP.setText("IP:");
 
         txtMessages.setEditable(false);
         txtMessages.setContentType("text/html"); // NOI18N
@@ -145,8 +146,8 @@ public class RouterChatGUI extends javax.swing.JFrame {
                         .addComponent(btnNewChat, javax.swing.GroupLayout.PREFERRED_SIZE, 52, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDelChat, javax.swing.GroupLayout.PREFERRED_SIZE, 48, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
+                    .addComponent(lblRouterName)
+                    .addComponent(lblIP))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
@@ -161,17 +162,17 @@ public class RouterChatGUI extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGap(6, 6, 6)
-                .addComponent(jLabel1)
+                .addComponent(lblRouterName)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2)
-                .addGap(31, 31, 31)
+                .addComponent(lblIP)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 264, Short.MAX_VALUE)
+                        .addComponent(jScrollPane4)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(btnSend, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jScrollPane3)))
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 282, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -272,7 +273,7 @@ public class RouterChatGUI extends javax.swing.JFrame {
             {
                 chat.chatMessages.add(newMessage(chat.neighbor,receivedMsg));
             }
-            
+
             if(rgui.lstCurrChats.getSelectedIndex() == neighborIndex)
             {
                 rgui.refreshMessages(chat.chatMessages);
@@ -280,31 +281,52 @@ public class RouterChatGUI extends javax.swing.JFrame {
             else
             {
                 chat.unreadMessages = true;
+                rgui.lstCurrChats.setCellRenderer(new ChatCellRender());
             }
         }
     }
     
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
-        this.txtMessages.setEditorKit(this.kit);
-        StyleSheet styleSheet = kit.getStyleSheet();
-        styleSheet.addRule("body {color: #222; font-family:times; margin: 0; padding:0 }");
-        styleSheet.addRule(".medate, .contactdate {font-size: 8px;}");
-        styleSheet.addRule(".me, .medate {color: blue;}");
-        styleSheet.addRule(".contact, .contactdate {color: green;}");
-
-        try
-        {
-            this.messageListener = new Thread(new MessageListener(this.myRouterIP,this.listenerPort,this));
-            this.messageListener.start();
-        } catch (IOException ex)
-        {
-            JOptionPane.showMessageDialog(this,"No ha sido posible hacer bind en la ip "+this.myRouterIP+":"+this.listenerPort,"",JOptionPane.ERROR_MESSAGE);
-            System.exit(-1);
-        }
-
         this.lblError.setText("");
-        this.chatModel.addElement(new Chat("B",false));
-        this.chatModel.get(0).chatMessages.add(newMessage("B","hola que tal"));
+        boolean connected = false;
+        do
+        {
+            JTextField routerName = new JTextField();
+            JTextField ip = new JTextField();
+            Object[] message = {
+                "Nombre del Router:", routerName,
+                "IP:", ip
+            };
+
+            int option = JOptionPane.showConfirmDialog(null, message, "Información del Router", JOptionPane.OK_CANCEL_OPTION,JOptionPane.PLAIN_MESSAGE);
+            if (option == JOptionPane.CANCEL_OPTION) 
+            {
+                System.exit(0);
+            }
+
+            this.txtMessages.setEditorKit(this.kit);
+            StyleSheet styleSheet = kit.getStyleSheet();
+            styleSheet.addRule("body {color: #222; font-family:times; margin: 0; padding:0 }");
+            styleSheet.addRule(".medate, .contactdate {font-size: 8px;}");
+            styleSheet.addRule(".me, .medate {color: blue;}");
+            styleSheet.addRule(".contact, .contactdate {color: green;}");
+
+            try
+            {
+                myRouterIP = ip.getText();
+                sayMyName = routerName.getText();
+                this.messageListener = new Thread(new MessageListener(myRouterIP,listenerPort,this));
+                this.messageListener.start();
+                connected = true;
+            } catch (Exception ex)
+            {
+                JOptionPane.showMessageDialog(this,"No ha sido posible hacer bind en la ip "+this.myRouterIP+":"+this.listenerPort,"",JOptionPane.ERROR_MESSAGE);
+            }
+        }
+        while(!connected);
+
+        this.lblRouterName.setText(lblRouterName.getText()+" "+sayMyName);
+        this.lblIP.setText(lblIP.getText()+" "+myRouterIP);
         this.lstCurrChats.setModel(chatModel);
         this.lstCurrChats.setCellRenderer(new ChatCellRender());
     }//GEN-LAST:event_formWindowOpened
@@ -312,7 +334,6 @@ public class RouterChatGUI extends javax.swing.JFrame {
     
     private void btnSendActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSendActionPerformed
         this.lblError.setText("");
-        System.out.println(txtMessage.getText());
         Chat selectedChat = null;
         synchronized(RouterChatGUI.chatsLock)
         {
@@ -356,7 +377,7 @@ public class RouterChatGUI extends javax.swing.JFrame {
 
     private void btnNewChatActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnNewChatActionPerformed
         String newNeighbor = JOptionPane.showInputDialog("Ingrese el nombre del router al que desea enviarle el mensaje: ");
-        if(newNeighbor != null)
+        if(newNeighbor != null && !newNeighbor.equals(sayMyName))
         {
             synchronized(RouterChatGUI.chatsLock)
             {
@@ -436,19 +457,19 @@ public class RouterChatGUI extends javax.swing.JFrame {
     private Thread messageListener = null;
     private int listenerPort = 1982;
     private static String sayMyName = "A";
-    private String myRouterIP = "172.16.110.1";
+    private String myRouterIP = "127.0.0.1";
     public static final Object chatsLock = new Object();
     public DefaultListModel<Chat> chatModel = new DefaultListModel<>();
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDelChat;
     private javax.swing.JButton btnNewChat;
     private javax.swing.JButton btnSend;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JLabel lblError;
+    private javax.swing.JLabel lblIP;
+    private javax.swing.JLabel lblRouterName;
     private javax.swing.JList<routerchat.Chat> lstCurrChats;
     private javax.swing.JTextArea txtMessage;
     private javax.swing.JEditorPane txtMessages;
