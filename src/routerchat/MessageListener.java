@@ -58,7 +58,7 @@ public class MessageListener implements Runnable
                     }
                     else
                     {
-                        receivedMsg += line;
+                        receivedMsg += line+"\n";
                     }
                 }
                 RouterChatGUI.processNewMessage(from,receivedMsg,this.rgui);

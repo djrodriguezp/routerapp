@@ -259,7 +259,7 @@ public class RouterChatGUI extends javax.swing.JFrame {
         String fromClass = (from.equals(sayMyName)) ? "me" : "contact";
         String htmlMsg = "<span class='"+fromClass+"'>Router "+from+"</span>";
         htmlMsg += "<span class='"+fromClass+"date'> ["+getCurrDateTime()+"]: </span>";
-        htmlMsg += message+"<br><br>";
+        htmlMsg += message+"<br>";
         return htmlMsg;
     }
     
